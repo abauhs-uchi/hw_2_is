@@ -30,17 +30,21 @@ def time_view(request):
     return HttpResponse(now.strftime('%H:%M'), content_type='text/plain')
 
 def sum_view(request):
-    """Return the sum of two numbers in JSON format."""
+    """Return the sum of two numbers as HTML."""
+    data = request.POST if request.method == 'POST' else request.GET
+    a = data.get('a')
+    b = data.get('b')
+    if a is None or b is None:
+        return HttpResponseBadRequest("Missing required fields")
+
     try:
-        data = json.loads(request.body)
-        a = data.get('a')
-        b = data.get('b')
-        if a is None or b is None:
-            return HttpResponseBadRequest("Missing required fields")
-        result = a + b
-        return JsonResponse({'result': result})
-    except (json.JSONDecodeError, TypeError):
-        return HttpResponseBadRequest("Invalid JSON")
+        result = round(float(a) + float(b), 10)
+    except ValueError:
+        return HttpResponseBadRequest("Invalid numbers")
+
+    if result == int(result):
+        result = int(result)  # 1+2 -> "3", not "3.0"
+    return HttpResponse(f"<p>{result}</p>")
 
 def index(request):
     """Render the home page (index.html)."""

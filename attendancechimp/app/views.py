@@ -32,7 +32,7 @@ def time_view(request):
 def sum_view(request):
     """Return the sum of two numbers in JSON format."""
     try:
-        data = json.load(request.body)
+        data = json.loads(request.body)
         a = data.get('a')
         b = data.get('b')
         if a is None or b is None:

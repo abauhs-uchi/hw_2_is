@@ -32,8 +32,8 @@ def time_view(request):
 def sum_view(request):
     """Return the sum of two numbers as HTML."""
     data = request.POST if request.method == 'POST' else request.GET
-    a = data.get('a')
-    b = data.get('b')
+    a = data.get('n1')
+    b = data.get('n2')
     if a is None or b is None:
         return HttpResponseBadRequest("Missing required fields")
 

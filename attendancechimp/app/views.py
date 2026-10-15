@@ -5,6 +5,8 @@ Each view corresponds to one URL endpoint.  Views receive an HTTP request,
 interact with the database via models.py, and return an HTTP response.
 """
 
+from http.client import HTTPResponse
+
 from django.shortcuts import render, redirect
 from django.http import (HttpResponse, HttpResponseForbidden,
                          HttpResponseBadRequest, JsonResponse)
@@ -20,12 +22,25 @@ import io
 #                      Lecture, QRCodeUpload, is_instructor, is_student,
 #                      getUploadsForCourse)
 
-CDT = zoneinfo.ZoneInfo("America/Chicago")
 
+def time_view(request):
+    """Return the current time in Http"""
 
-# ---------------------------------------------------------------------------
-# HW2  — index, time, sum
-# ---------------------------------------------------------------------------
+    now = datetime.now(tz=zoneinfo.ZoneInfo("America/Chicago"))
+    return HttpResponse(now.strftime('%H:%M'), content_type='text/plain')
+
+def sum_view(request):
+    """Return the sum of two numbers in JSON format."""
+    try:
+        data = json.load(request.body)
+        a = data.get('a')
+        b = data.get('b')
+        if a is None or b is None:
+            return HttpResponseBadRequest("Missing required fields")
+        result = a + b
+        return JsonResponse({'result': result})
+    except (json.JSONDecodeError, TypeError):
+        return HttpResponseBadRequest("Invalid JSON")
 
 def index(request):
     """Render the home page (index.html)."""

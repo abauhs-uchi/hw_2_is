@@ -1,7 +1,31 @@
 <!DOCTYPE html>
-<html><head><title>Login</title></head>
-<body style="text-align:center; font-family:Arial;">
-<h1>Log In</h1>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log In - AttendanceChimp</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+        form { max-width: 400px; margin: 0 auto; }
+        .field { margin: 12px 0; }
+    </style>
+</head>
+<body>
+    <h1>Log In</h1>
 
+    <form method="post" action="/accounts/login/">
+        {% csrf_token %}
+
+        <div class="field">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="field">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <button type="submit">Log In</button>
+    </form>
 </body>
 </html>

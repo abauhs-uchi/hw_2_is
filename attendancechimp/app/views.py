@@ -5,7 +5,7 @@ Each view corresponds to one URL endpoint.  Views receive an HTTP request,
 interact with the database via models.py, and return an HTTP response.
 """
 
-from http.client import HTTPResponse
+
 
 from django.shortcuts import render, redirect
 from django.http import (HttpResponse, HttpResponseForbidden,
@@ -15,12 +15,17 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from datetime import datetime
 import zoneinfo
-import json
-import io
 
-# from .models import (InstructorProfile, StudentProfile, Course, Enrollment,
-#                      Lecture, QRCodeUpload, is_instructor, is_student,
-#                      getUploadsForCourse)
+from django.views.decorators.http import require_GET, require_POST
+from .models import InstructorProfile, StudentProfile
+
+
+from .models import (InstructorProfile, StudentProfile)
+
+"""from .models import (InstructorProfile, StudentProfile, Course, Enrollment,
+                      Lecture, QRCodeUpload, is_instructor, is_student,
+                      getUploadsForCourse)
+"""
 
 
 def time_view(request):
@@ -40,7 +45,7 @@ def sum_view(request):
     try:
         result = round(float(a) + float(b), 10)
     except ValueError:
-        return HttpResponseBadRequest("Invalid numbers")
+        return HttpResponseBadRequest("Is Invalid numbers")
 
     if result == int(result):
         result = int(result)  # 1+2 -> "3", not "3.0"
@@ -49,16 +54,41 @@ def sum_view(request):
 def index(request):
     """Render the home page (index.html)."""
 
-    context = {}
+    now = datetime.now(tz=zoneinfo.ZoneInfo("America/Chicago"))
+    context = {'current_time': now.strftime('%H:%M')}
     return render(request, 'app/index.html', context)
+@require_GET
+def new(request):
+    """Render the sign-up form. GET only."""
+    return render(request, 'app/new.html')
 
 
+@csrf_exempt
+@require_POST
+def createUser(request):
+    """Create a user + profile, log them in. POST only."""
+    email = request.POST.get('email')
+    user_name = request.POST.get('user_name')
+    password = request.POST.get('password')
+    is_student = request.POST.get('is_student')
 
-# ---------------------------------------------------------------------------
-# HW4  — user creation
-# ---------------------------------------------------------------------------
+    if not all([email, user_name, password, is_student]):
+        return HttpResponseBadRequest("Missing required fields")
 
+    if User.objects.filter(email=email).exists():
+        return HttpResponseBadRequest("Email already registered")
 
+    user = User.objects.create_user(username=user_name, email=email,
+                                    password=password)
+
+    if is_student == '1':
+        StudentProfile.objects.create(user=user, student_name=user_name)
+    else:
+        InstructorProfile.objects.create(user=user, instructor_name=user_name)
+
+    user = authenticate(request, username=user_name, password=password)
+    login(request, user)
+    return HttpResponse("User created")
 
 # ---------------------------------------------------------------------------
 # HW5  — courses, lectures, QR uploads, dump
